@@ -1,0 +1,39 @@
+# Model Selection & Algorithm Configuration (Covers: TensorFlow, PyTorch, CNN, Transformer)
+frameworks:
+  - name: "pytorch"
+    version: "2.1.0"
+    use_cases: ["transformer", "llm", "agent"]
+  - name: "tensorflow"
+    version: "2.15.0"
+    use_cases: ["cnn", "fraud_detection"]
+
+algorithms:
+  transformer:
+    model_family: "llama"
+    variants: ["llama-3.1-8b", "llama-3.1-70b"]
+    fine_tuning_methods: ["lora", "p-tuning", "qlora"]
+  
+  cnn:
+    architectures: ["resnet50", "efficientnet", "custom_cnn"]
+    use_cases: ["image_classification", "fraud_pattern_detection"]
+    input_shape: [224, 224, 3]
+
+  fraud_detection:
+    model_type: "hybrid"
+    components:
+      - type: "cnn"
+        framework: "tensorflow"
+        features: ["transaction_sequence", "user_behavior"]
+      - type: "transformer"
+        framework: "pytorch"
+        features: ["text_analysis", "chat_logs"]
+
+data_labeling:
+  tools: ["label-studio", "dvc"]
+  schema_version: "1.0"
+  categories:
+    - "fraud"
+    - "legitimate"
+    - "suspicious"
+    - "customer_support"
+    - "product_inquiry"

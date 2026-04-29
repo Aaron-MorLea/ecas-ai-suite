@@ -1,0 +1,81 @@
+name: ECAS CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create false
+        poetry install
+    
+    - name: Run linter (Ruff)
+      run: |
+        ruff check src/ tests/
+    
+    - name: Run formatter check (Black)
+      run: |
+        black --check src/ tests/
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=src --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t ecas-ai-suite:latest .
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm ecas-ai-suite:latest python -c "import src.api; print('OK')"
+
+  mlflow:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Train model (CI test)
+      run: |
+        pip install poetry
+        poetry install
+        python pipelines/train_cnn.py --epochs 2
+      env:
+        MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_URI }}

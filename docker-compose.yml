@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/app/models
+      - DATA_PATH=/app/data
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      - neo4j
+      - chroma
+    command: uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
+
+  neo4j:
+    image: neo4j:5.14-community
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=[]
+    volumes:
+      - neo4j_data:/data
+
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow.db
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./models:/models
+    command: --model /models/llama-3.1-8b --dtype auto
+
+volumes:
+  neo4j_data:
+  chroma_data:

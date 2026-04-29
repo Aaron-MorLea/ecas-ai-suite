@@ -1,0 +1,3 @@
+# Models directory
+# Trained models and LoRA adapters are stored here
+# Large model files should be tracked with DVC or Git LFS

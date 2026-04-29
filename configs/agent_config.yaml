@@ -1,0 +1,47 @@
+# LangChain & LangGraph Agent Configuration (Covers: Agents, RAG, Prompt Libraries)
+agents:
+  support_agent:
+    type: "langgraph"
+    framework: "langchain"
+    tools:
+      - "rag_retriever"
+      - "fraud_analyzer"
+      - "order_lookup"
+      - "refund_processor"
+    prompt_library: "src/agents/prompts/support_prompts.yaml"
+    
+  fraud_agent:
+    type: "langgraph"
+    framework: "langchain"
+    tools:
+      - "transaction_analyzer"
+      - "risk_scorer"
+      - "pattern_detector"
+    prompt_library: "src/agents/prompts/fraud_prompts.yaml"
+
+rag:
+  vector_db:
+    type: "chromadb"
+    collection_name: "ecommerce_docs"
+    embedding_model: "all-MiniLM-L6-v2"
+    
+  knowledge_graph:
+    type: "neo4j"
+    uri: "${NEO4J_URI}"
+    user: "${NEO4J_USER}"
+    password: "${NEO4J_PASSWORD}"
+    graph_schema: "docs/graph_schema.cypher"
+
+prompt_library:
+  version: "1.0"
+  templates:
+    - name: "customer_support"
+      file: "support_template.j2"
+    - name: "fraud_analysis"
+      file: "fraud_template.j2"
+    - name: "product_recommendation"
+      file: "recommendation_template.j2"
+
+image_generation:
+  model: "stable-diffusion-v1.5"
+  use_cases: ["product_images", "marketing_materials"]

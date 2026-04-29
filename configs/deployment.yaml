@@ -1,0 +1,58 @@
+# Deployment Configuration (Covers: API, Docker, K8s, vLLM, SGLang)
+api:
+  framework: "fastapi"
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  timeout: 300
+
+inference:
+  vllm:
+    enabled: true
+    model_path: "/models/llama-3.1-8b-merged"
+    dtype: "auto"
+    max_model_len: 2048
+    gpu_memory_utilization: 0.9
+    
+  sglang:
+    enabled: true
+    model_path: "/models/llama-3.1-8b-merged"
+    tp_size: 1
+    context_length: 2048
+
+docker:
+  base_image: "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime"
+  python_version: "3.10"
+  
+kubernetes:
+  namespace: "ecas"
+  replicas: 3
+  resources:
+    requests:
+      cpu: "2"
+      memory: "8Gi"
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "4"
+      memory: "16Gi"
+      nvidia.com/gpu: "1"
+  
+  autoscaling:
+    min_replicas: 2
+    max_replicas: 10
+    target_cpu_utilization: 70
+
+mlops:
+  mlflow:
+    tracking_uri: "http://mlflow:5000"
+    experiment_name: "ecas-experiments"
+    
+  monitoring:
+    evidently:
+      enabled: true
+      metrics: ["data_drift", "concept_drift", "model_performance"]
+      report_path: "./reports"
+    
+  dvc:
+    remote: "s3://ecas-data"
+    data_path: "./data"
