@@ -4,7 +4,7 @@ services:
   api:
     build: .
     ports:
-      - "8000:8000"
+      - "8100:8000"
     environment:
       - MODEL_PATH=/app/models
       - DATA_PATH=/app/data
